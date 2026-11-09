@@ -1,0 +1,409 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#111315">
+<title>Gym Log — Arms & Back</title>
+<style>
+:root {
+  --bg: #111315; --surface: #1a1d21; --surface-2: #23272d; --line: #2e333a;
+  --text: #f1f2ee; --muted: #9299a3; --accent: #c8f250; --on-accent: #141a00;
+  --back: #6cc5ff; --biceps: #ffb454; --triceps: #ff8f8f; --danger: #ff6b6b;
+}
+@media (prefers-color-scheme: light) {
+  :root {
+    --bg: #f3f2ec; --surface: #ffffff; --surface-2: #ecebe4; --line: #d9d7cd;
+    --text: #17191c; --muted: #636973; --accent: #3f6d00; --on-accent: #ffffff;
+    --back: #0b6aa8; --biceps: #9a5a00; --triceps: #b3312f; --danger: #c22f2f;
+  }
+}
+* { box-sizing: border-box; }
+html { -webkit-text-size-adjust: 100%; }
+body {
+  margin: 0; background: var(--bg); color: var(--text);
+  font: 16px/1.45 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  padding-bottom: calc(150px + env(safe-area-inset-bottom));
+}
+button { font: inherit; color: inherit; cursor: pointer; border: 0; background: none; }
+main, header { max-width: 640px; margin: 0 auto; padding: 0 16px; }
+
+header { padding-top: 20px; }
+.eyebrow { font-size: 12px; letter-spacing: .14em; text-transform: uppercase; color: var(--muted); }
+h1 { font-size: 30px; line-height: 1.1; margin: 4px 0 14px; letter-spacing: -.02em; font-weight: 800; }
+h1 span { color: var(--accent); }
+.progress { height: 6px; background: var(--surface-2); border-radius: 3px; overflow: hidden; }
+.progress i { display: block; height: 100%; background: var(--accent); width: 0; transition: width .3s; }
+.progress-label { display: flex; justify-content: space-between; font-size: 13px; color: var(--muted); margin: 6px 0 18px; font-variant-numeric: tabular-nums; }
+
+.card { background: var(--surface); border: 1px solid var(--line); border-radius: 14px; margin-bottom: 10px; overflow: hidden; }
+.card.done { opacity: .72; }
+.card-head { display: flex; align-items: center; gap: 12px; width: 100%; padding: 14px; text-align: left; }
+.num { flex: none; width: 32px; height: 32px; border-radius: 50%; background: var(--surface-2); display: grid; place-items: center; font-weight: 700; font-size: 14px; font-variant-numeric: tabular-nums; }
+.card.done .num { background: var(--accent); color: var(--on-accent); }
+.card-title { flex: 1; min-width: 0; }
+.card-title b { display: block; font-size: 17px; }
+.meta { font-size: 13px; color: var(--muted); display: flex; flex-wrap: wrap; gap: 4px 10px; align-items: center; }
+.chip { font-size: 11px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; }
+.chip.Back { color: var(--back); } .chip.Biceps { color: var(--biceps); } .chip.Triceps { color: var(--triceps); }
+.target { flex: none; font-weight: 700; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.card-body { padding: 0 14px 14px; border-top: 1px solid var(--line); }
+
+.sets { margin-top: 12px; }
+.set { display: grid; grid-template-columns: 28px 1fr 1fr 48px; gap: 8px; align-items: center; margin-bottom: 8px; }
+.set-n { color: var(--muted); font-size: 13px; text-align: center; font-variant-numeric: tabular-nums; }
+.field { position: relative; }
+.field input {
+  width: 100%; height: 48px; border-radius: 10px; border: 1px solid var(--line); background: var(--surface-2);
+  color: var(--text); font: 600 18px/1 inherit; font-family: inherit; padding: 0 38px 0 12px; font-variant-numeric: tabular-nums;
+}
+.field input:focus { outline: 2px solid var(--accent); outline-offset: 1px; }
+.field span { position: absolute; right: 10px; top: 50%; transform: translateY(-50%); font-size: 12px; color: var(--muted); pointer-events: none; }
+.check { height: 48px; border-radius: 10px; border: 1px solid var(--line); background: var(--surface-2); font-size: 20px; color: var(--muted); }
+.check[aria-pressed="true"] { background: var(--accent); border-color: var(--accent); color: var(--on-accent); }
+.set-actions { display: flex; gap: 8px; }
+.ghost { font-size: 14px; color: var(--muted); padding: 8px 10px; border: 1px dashed var(--line); border-radius: 8px; }
+.last { font-size: 13px; color: var(--muted); margin: 12px 0 0; }
+
+details { margin-top: 12px; border-radius: 10px; background: var(--surface-2); }
+summary { padding: 11px 12px; font-weight: 600; font-size: 14px; cursor: pointer; }
+.how { padding: 0 12px 12px; font-size: 14.5px; }
+.how ol, .how ul { margin: 6px 0 10px; padding-left: 20px; }
+.how li { margin-bottom: 4px; }
+.how h4 { margin: 10px 0 0; font-size: 12px; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); }
+.how a { color: var(--accent); font-weight: 600; }
+.how p { margin: 6px 0; }
+
+.btn { display: block; width: 100%; padding: 15px; border-radius: 12px; background: var(--accent); color: var(--on-accent); font-weight: 800; font-size: 16px; margin-top: 16px; }
+.btn.secondary { background: var(--surface-2); color: var(--text); border: 1px solid var(--line); }
+
+h2 { font-size: 20px; margin: 22px 0 10px; letter-spacing: -.01em; }
+.prose { background: var(--surface); border: 1px solid var(--line); border-radius: 14px; padding: 4px 16px 10px; margin-bottom: 10px; }
+.prose h3 { font-size: 15px; margin: 14px 0 4px; }
+.prose p, .prose ul { margin: 4px 0 8px; font-size: 15px; color: var(--text); }
+.prose ul { padding-left: 20px; }
+.empty { color: var(--muted); text-align: center; padding: 48px 16px; }
+.h-row { display: flex; justify-content: space-between; gap: 10px; font-size: 14px; padding: 6px 0; border-top: 1px solid var(--line); }
+.h-row span:last-child { color: var(--muted); font-variant-numeric: tabular-nums; text-align: right; }
+.h-stats { color: var(--muted); font-size: 13px; }
+.link-danger { color: var(--danger); font-size: 13px; padding: 8px 0 4px; }
+
+nav { position: fixed; left: 0; right: 0; bottom: 0; background: var(--surface); border-top: 1px solid var(--line); padding-bottom: env(safe-area-inset-bottom); z-index: 5; }
+nav div { max-width: 640px; margin: 0 auto; display: grid; grid-template-columns: repeat(3, 1fr); }
+nav button { padding: 14px 0; font-size: 14px; font-weight: 600; color: var(--muted); border-top: 2px solid transparent; margin-top: -1px; }
+nav button[aria-current="true"] { color: var(--text); border-top-color: var(--accent); }
+
+.timer { position: fixed; left: 12px; right: 12px; bottom: calc(60px + env(safe-area-inset-bottom)); max-width: 616px; margin: 0 auto; z-index: 6;
+  background: var(--text); color: var(--bg); border-radius: 14px; padding: 10px 10px 10px 16px; display: flex; align-items: center; gap: 10px; box-shadow: 0 8px 24px rgba(0,0,0,.35); }
+.timer[hidden] { display: none; }
+.timer small { display: block; font-size: 11px; letter-spacing: .1em; text-transform: uppercase; opacity: .65; }
+.timer strong { font-size: 26px; font-variant-numeric: tabular-nums; line-height: 1; }
+.timer .grow { flex: 1; }
+.timer button { padding: 10px 14px; border-radius: 9px; font-weight: 700; font-size: 14px; color: var(--bg); border: 1px solid color-mix(in srgb, var(--bg) 30%, transparent); }
+.timer.up { background: var(--accent); color: var(--on-accent); }
+.timer.up button { color: var(--on-accent); }
+</style>
+</head>
+<body>
+<header>
+  <div class="eyebrow" id="dateLabel"></div>
+  <h1>Arms <span>&amp;</span> Back</h1>
+</header>
+<main id="app"></main>
+
+<div class="timer" id="timer" hidden>
+  <div class="grow"><small id="timerLabel">Rest</small><strong id="timerTime">1:15</strong></div>
+  <button data-act="timer-add">+15s</button>
+  <button data-act="timer-skip">Skip</button>
+</div>
+
+<nav><div>
+  <button data-tab="workout">Workout</button>
+  <button data-tab="guide">First-day guide</button>
+  <button data-tab="history">History</button>
+</div></nav>
+
+<script>
+const REST_SECONDS = 75;
+const PLAN = [
+  { id: 'lat-pulldown', name: 'Lat pulldown', group: 'Back', sets: 3, reps: '10–12', equip: 'Cable machine, wide bar',
+    start: 'Try 20–30 kg and adjust.',
+    steps: ['Sit down and lock your thighs under the pads. Grip the bar a bit wider than your shoulders, palms facing away.',
+            'Lean back very slightly, chest up.',
+            'Pull the bar down to your upper chest by driving your elbows down toward your hips.',
+            'Pause for a second, then let the bar rise slowly until your arms are straight.'],
+    cues: ['Think "elbows into back pockets" — your back does the work, not your hands.', 'Keep shoulders down, away from your ears.'],
+    mistake: 'Swinging your torso back to yank the weight, or pulling the bar behind your neck.' },
+  { id: 'seated-row', name: 'Seated cable row', group: 'Back', sets: 3, reps: '10–12', equip: 'Cable row station, V-handle',
+    start: 'Try 20–30 kg and adjust.',
+    steps: ['Sit with feet on the platform, knees slightly bent, back straight.',
+            'Grab the handle with arms extended and sit tall.',
+            'Pull the handle to your belly button, squeezing your shoulder blades together.',
+            'Return slowly until your arms are straight, without rounding your back.'],
+    cues: ['Chest proud the whole time.', 'Elbows stay close to your ribs.'],
+    mistake: 'Rocking back and forth with your whole body — your torso should barely move.' },
+  { id: 'db-row', name: 'One-arm dumbbell row', group: 'Back', sets: 3, reps: '10 / side', equip: 'Dumbbell + flat bench',
+    start: 'Try an 8–12 kg dumbbell.',
+    steps: ['Put your left knee and left hand on a bench. Back flat like a table, right foot on the floor.',
+            'Hold the dumbbell in your right hand, arm hanging straight down.',
+            'Pull the dumbbell up toward your hip, elbow brushing past your ribs.',
+            'Lower it under control. Finish all reps, then switch sides.'],
+    cues: ['Pull with the elbow, not the hand.', 'Keep hips and shoulders square to the floor.'],
+    mistake: 'Twisting your torso open to lift the weight, or rounding your lower back.' },
+  { id: 'db-curl', name: 'Dumbbell biceps curl', group: 'Biceps', sets: 3, reps: '10–12', equip: 'Two dumbbells',
+    start: 'Try 5–8 kg per hand.',
+    steps: ['Stand tall, a dumbbell in each hand, palms facing forward, elbows at your sides.',
+            'Curl both dumbbells up toward your shoulders without moving your upper arms.',
+            'Squeeze at the top for a second.',
+            'Lower slowly — take about 2–3 seconds — until arms are fully straight.'],
+    cues: ['Elbows pinned to your ribs.', 'The slow lowering is where most of the benefit is.'],
+    mistake: 'Swinging your hips or leaning back to throw the weight up. If that happens, go lighter.' },
+  { id: 'pushdown', name: 'Triceps rope pushdown', group: 'Triceps', sets: 3, reps: '10–12', equip: 'Cable machine, rope on high pulley',
+    start: 'Try 10–15 kg and adjust.',
+    steps: ['Face the cable, grab the rope with both hands, take a small step back and lean forward slightly.',
+            'Tuck your elbows to your sides, forearms roughly parallel to the floor.',
+            'Push the rope down until your arms are straight, spreading the rope ends apart at the bottom.',
+            'Let it rise slowly back to the start. Only your forearms move.'],
+    cues: ['Elbows are a hinge — they stay glued in place.', 'Fully straighten your arms on every rep.'],
+    mistake: 'Elbows flaring out or drifting forward, turning it into a full-body push.' },
+  { id: 'hammer-curl', name: 'Hammer curl', group: 'Biceps', sets: 2, reps: '12', equip: 'Two dumbbells',
+    start: 'Same weight as your curls, or slightly more.',
+    steps: ['Stand tall, dumbbells at your sides, palms facing each other (like holding a hammer).',
+            'Curl the weights up keeping that neutral grip the whole way.',
+            'Lower slowly to full extension.'],
+    cues: ['Thumbs point up throughout.', 'Trains the forearms and the outer part of the arm.'],
+    mistake: 'Rotating the wrists into a normal curl or swinging the body.' },
+  { id: 'oh-extension', name: 'Overhead triceps extension', group: 'Triceps', sets: 2, reps: '12', equip: 'One dumbbell, seated',
+    start: 'Try one 6–10 kg dumbbell held in both hands.',
+    steps: ['Sit on a bench with back support. Hold one dumbbell with both hands and press it overhead.',
+            'Keeping your upper arms close to your ears, bend the elbows to lower the weight behind your head.',
+            'Straighten your arms to lift it back up.'],
+    cues: ['Elbows point forward, not out to the sides.', 'Keep your ribs down — don\'t arch your lower back.'],
+    mistake: 'Going too heavy. This one stretches the elbow joint, so start light and controlled.' },
+];
+
+// ---------- state ----------
+const KEY = 'gymlog.v1';
+let state = load();
+let tab = 'workout';
+let openId = null;
+
+function load() {
+  try { const s = JSON.parse(localStorage.getItem(KEY)); if (s && s.history) return s; } catch (e) {}
+  return { current: null, history: [] };
+}
+function save() { try { localStorage.setItem(KEY, JSON.stringify(state)); } catch (e) {} }
+
+function lastSets(exId) {
+  for (const s of state.history) {
+    const done = (s.entries[exId] || []).filter(x => x.done);
+    if (done.length) return { date: s.date, sets: done };
+  }
+  return null;
+}
+function ensureCurrent() {
+  if (state.current) return state.current;
+  const entries = {};
+  for (const ex of PLAN) {
+    const prev = lastSets(ex.id);
+    entries[ex.id] = Array.from({ length: ex.sets }, (_, i) => ({
+      kg: prev ? (prev.sets[Math.min(i, prev.sets.length - 1)].kg ?? '') : '', reps: '', done: false }));
+  }
+  state.current = { startedAt: null, entries };
+  return state.current;
+}
+const fmtKg = v => (v === '' || v == null) ? '–' : String(v);
+const fmtDate = iso => new Date(iso).toLocaleDateString(undefined, { weekday: 'short', day: 'numeric', month: 'short' });
+const esc = s => String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+const setsText = sets => sets.map(s => `${fmtKg(s.kg)}×${s.reps || '–'}`).join(', ');
+
+// ---------- render ----------
+const app = document.getElementById('app');
+function render() {
+  document.querySelectorAll('nav button').forEach(b => b.setAttribute('aria-current', b.dataset.tab === tab));
+  document.getElementById('dateLabel').textContent =
+    new Date().toLocaleDateString(undefined, { weekday: 'long', day: 'numeric', month: 'long' }) + ' · Beginner';
+  app.innerHTML = tab === 'workout' ? workoutView() : tab === 'guide' ? guideView() : historyView();
+}
+
+function workoutView() {
+  const cur = ensureCurrent();
+  let total = 0, done = 0;
+  for (const ex of PLAN) for (const s of cur.entries[ex.id]) { total++; if (s.done) done++; }
+  if (openId === null) openId = (PLAN.find(ex => cur.entries[ex.id].some(s => !s.done)) || PLAN[0]).id;
+
+  const cards = PLAN.map((ex, i) => {
+    const sets = cur.entries[ex.id];
+    const allDone = sets.length > 0 && sets.every(s => s.done);
+    const open = openId === ex.id;
+    const prev = lastSets(ex.id);
+    const q = encodeURIComponent(ex.name + ' proper form beginner');
+    return `<section class="card ${allDone ? 'done' : ''}">
+      <button class="card-head" data-act="toggle" data-ex="${ex.id}" aria-expanded="${open}">
+        <span class="num">${allDone ? '✓' : i + 1}</span>
+        <span class="card-title"><b>${esc(ex.name)}</b>
+          <span class="meta"><span class="chip ${ex.group}">${ex.group}</span><span>${esc(ex.equip)}</span></span></span>
+        <span class="target">${ex.sets} × ${esc(ex.reps)}</span>
+      </button>
+      ${open ? `<div class="card-body">
+        <details ${prev ? '' : 'open'}><summary>How to do it</summary><div class="how">
+          <ol>${ex.steps.map(s => `<li>${esc(s)}</li>`).join('')}</ol>
+          <h4>Focus on</h4><ul>${ex.cues.map(s => `<li>${esc(s)}</li>`).join('')}</ul>
+          <h4>Common mistake</h4><p>${esc(ex.mistake)}</p>
+          <h4>Starting weight</h4><p>${esc(ex.start)} The last 2 reps should feel hard but still look clean.</p>
+          <p><a href="https://www.youtube.com/results?search_query=${q}" target="_blank" rel="noopener">Watch a form video ↗</a></p>
+        </div></details>
+        <p class="last">${prev ? `Last time (${fmtDate(prev.date)}): ${esc(setsText(prev.sets))} kg×reps` : 'First time — log what you lift so next session has a target.'}</p>
+        <div class="sets">${sets.map((s, n) => `<div class="set">
+          <span class="set-n">${n + 1}</span>
+          <label class="field"><input type="text" inputmode="decimal" autocomplete="off" aria-label="Weight, set ${n + 1}" data-ex="${ex.id}" data-set="${n}" data-f="kg" value="${esc(s.kg ?? '')}" placeholder="0"><span>kg</span></label>
+          <label class="field"><input type="text" inputmode="numeric" autocomplete="off" aria-label="Reps, set ${n + 1}" data-ex="${ex.id}" data-set="${n}" data-f="reps" value="${esc(s.reps ?? '')}" placeholder="${parseInt(ex.reps)}"><span>reps</span></label>
+          <button class="check" data-act="check" data-ex="${ex.id}" data-set="${n}" aria-pressed="${s.done}" aria-label="Mark set ${n + 1} done">✓</button>
+        </div>`).join('')}</div>
+        <div class="set-actions">
+          <button class="ghost" data-act="add-set" data-ex="${ex.id}">+ Add set</button>
+          ${sets.length > 1 ? `<button class="ghost" data-act="del-set" data-ex="${ex.id}">− Remove last</button>` : ''}
+        </div>
+      </div>` : ''}
+    </section>`;
+  }).join('');
+
+  return `<div class="progress"><i style="width:${total ? done / total * 100 : 0}%"></i></div>
+    <div class="progress-label"><span>${done} of ${total} sets done</span><span>Rest ${REST_SECONDS}s between sets</span></div>
+    ${cards}
+    <button class="btn" data-act="finish">Finish workout</button>
+    ${done ? '<button class="btn secondary" data-act="discard">Discard and start over</button>' : ''}`;
+}
+
+function guideView() {
+  return `<h2>Before you start</h2>
+  <div class="prose">
+    <h3>Warm up — 5 to 8 minutes</h3>
+    <ul><li>5 min easy rowing machine or brisk incline walk.</li>
+      <li>10 arm circles each direction, 10 shoulder rolls.</li>
+      <li>Before each exercise: 1 very light set of 12 reps to learn the movement. Don't log it.</li></ul>
+    <h3>Picking a weight</h3>
+    <p>Start lighter than you think. If you can do the top of the rep range with clean form on every set, add the smallest step next time (usually 2.5 kg, or 1 kg per dumbbell). If you can't reach the bottom of the range, drop the weight.</p>
+    <h3>How a rep should look</h3>
+    <ul><li>About 1 second to lift, 2–3 seconds to lower.</li>
+      <li>Breathe out as you pull or push, in as you lower.</li>
+      <li>Full range of motion beats heavier weight.</li></ul>
+  </div>
+  <h2>During the session</h2>
+  <div class="prose">
+    <ul><li>Rest 60–90 seconds between sets — the timer starts when you tick a set.</li>
+      <li>The whole workout takes about 45–55 minutes.</li>
+      <li>Machine busy? Skip to the next exercise and come back.</li>
+      <li>Not sure how a machine adjusts? Ask the floor staff — that's exactly what they're there for.</li>
+      <li>Sip water. Wipe down the equipment and put weights back.</li></ul>
+    <h3>Stop if</h3>
+    <p>You feel sharp or sudden pain, pain in a joint, or dizziness. Muscle burn and tiredness are fine; sharp pain is not.</p>
+  </div>
+  <h2>After</h2>
+  <div class="prose">
+    <ul><li>Stretch lats, biceps and triceps for 20–30 seconds each.</li>
+      <li>Expect sore arms and back for 1–3 days. It's normal after a first session and fades faster each week.</li>
+      <li>Eat a meal with protein, sleep well, and leave at least 48 hours before training arms and back again.</li></ul>
+  </div>`;
+}
+
+function historyView() {
+  if (!state.history.length) return `<div class="empty">No workouts yet.<br>Finish your first session and it shows up here.</div>`;
+  return '<h2>Past sessions</h2>' + state.history.map((s, i) => {
+    let n = 0, vol = 0;
+    const rows = PLAN.map(ex => {
+      const done = (s.entries[ex.id] || []).filter(x => x.done);
+      if (!done.length) return '';
+      for (const d of done) { n++; vol += (parseFloat(d.kg) || 0) * (parseInt(d.reps) || 0); }
+      return `<div class="h-row"><span>${esc(ex.name)}</span><span>${esc(setsText(done))}</span></div>`;
+    }).join('');
+    return `<div class="prose"><h3>${fmtDate(s.date)}</h3>
+      <p class="h-stats">${n} sets${s.minutes ? ` · ${s.minutes} min` : ''} · ${Math.round(vol).toLocaleString()} kg total volume</p>
+      ${rows}<button class="link-danger" data-act="del-session" data-i="${i}">Delete session</button></div>`;
+  }).join('');
+}
+
+// ---------- rest timer ----------
+const timerEl = document.getElementById('timer');
+let timerEnd = 0, timerTick = null;
+function startTimer(sec) {
+  timerEnd = Date.now() + sec * 1000;
+  timerEl.hidden = false; timerEl.classList.remove('up');
+  document.getElementById('timerLabel').textContent = 'Rest';
+  clearInterval(timerTick); timerTick = setInterval(tick, 250); tick();
+}
+function tick() {
+  const left = Math.ceil((timerEnd - Date.now()) / 1000);
+  if (left <= 0) {
+    clearInterval(timerTick);
+    timerEl.classList.add('up');
+    document.getElementById('timerLabel').textContent = 'Rest over';
+    document.getElementById('timerTime').textContent = 'Go!';
+    if (navigator.vibrate) navigator.vibrate([200, 100, 200]);
+    setTimeout(() => { if (Date.now() >= timerEnd) timerEl.hidden = true; }, 6000);
+    return;
+  }
+  document.getElementById('timerTime').textContent = Math.floor(left / 60) + ':' + String(left % 60).padStart(2, '0');
+}
+function stopTimer() { clearInterval(timerTick); timerEl.hidden = true; }
+
+// ---------- events ----------
+document.addEventListener('input', e => {
+  const t = e.target;
+  if (!t.dataset || !t.dataset.f) return;
+  const cur = ensureCurrent();
+  cur.entries[t.dataset.ex][+t.dataset.set][t.dataset.f] = t.value.replace(',', '.').trim();
+  save();
+});
+
+document.addEventListener('click', e => {
+  const tabBtn = e.target.closest('[data-tab]');
+  if (tabBtn) { tab = tabBtn.dataset.tab; render(); window.scrollTo(0, 0); return; }
+  const b = e.target.closest('[data-act]');
+  if (!b) return;
+  const act = b.dataset.act, cur = ensureCurrent(), sets = b.dataset.ex && cur.entries[b.dataset.ex];
+  if (act === 'toggle') openId = openId === b.dataset.ex ? '' : b.dataset.ex;
+  else if (act === 'check') {
+    const s = sets[+b.dataset.set];
+    s.done = !s.done;
+    if (s.done) {
+      if (!cur.startedAt) cur.startedAt = Date.now();
+      const ex = PLAN.find(x => x.id === b.dataset.ex);
+      if (s.reps === '') s.reps = String(parseInt(ex.reps));
+      const next = sets[+b.dataset.set + 1];
+      if (next && next.kg === '') next.kg = s.kg;
+      const allSetsDone = PLAN.every(x => cur.entries[x.id].every(y => y.done));
+      if (!allSetsDone) startTimer(REST_SECONDS);
+      if (sets.every(x => x.done)) {
+        const nextEx = PLAN.find(x => cur.entries[x.id].some(y => !y.done));
+        openId = nextEx ? nextEx.id : '';
+      }
+    }
+  }
+  else if (act === 'add-set') sets.push({ kg: sets.length ? sets[sets.length - 1].kg : '', reps: '', done: false });
+  else if (act === 'del-set') sets.pop();
+  else if (act === 'finish') {
+    const any = PLAN.some(x => cur.entries[x.id].some(y => y.done));
+    if (!any) { alert('Tick at least one set before finishing.'); return; }
+    if (!confirm('Finish and save this workout?')) return;
+    state.history.unshift({ date: new Date().toISOString(),
+      minutes: cur.startedAt ? Math.max(1, Math.round((Date.now() - cur.startedAt) / 60000)) : 0, entries: cur.entries });
+    state.current = null; openId = null; stopTimer(); tab = 'history';
+  }
+  else if (act === 'discard') {
+    if (!confirm('Discard everything logged in this session?')) return;
+    state.current = null; openId = null; stopTimer();
+  }
+  else if (act === 'del-session') {
+    if (!confirm('Delete this session from history?')) return;
+    state.history.splice(+b.dataset.i, 1);
+  }
+  else if (act === 'timer-add') { timerEnd = Math.max(timerEnd, Date.now()) + 15000; startTimer((timerEnd - Date.now()) / 1000); return; }
+  else if (act === 'timer-skip') { stopTimer(); return; }
+  save(); render();
+});
+
+render();
+</script>
+</body>
+</html>
