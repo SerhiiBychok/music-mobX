@@ -52,6 +52,15 @@ h1 span { color: var(--hero-mark); }
 .target { flex: none; font-weight: 700; font-variant-numeric: tabular-nums; white-space: nowrap; color: var(--accent); }
 .card-body { padding: 0 14px 14px; border-top: 1px solid var(--line); }
 
+.mode { display: flex; align-items: center; gap: 12px; background: var(--surface); border: 1px solid var(--line); border-radius: 14px; padding: 12px 14px; margin-bottom: 14px; }
+.mode.on { border-color: var(--accent); background: color-mix(in srgb, var(--accent) 10%, var(--surface)); }
+.mode div { flex: 1; font-size: 13px; color: var(--muted); }
+.mode b { display: block; font-size: 15px; color: var(--text); }
+.mode button { flex: none; width: 52px; height: 30px; border-radius: 15px; background: var(--line); position: relative; transition: background .2s; }
+.mode button i { position: absolute; top: 3px; left: 3px; width: 24px; height: 24px; border-radius: 50%; background: #fff; transition: transform .2s; }
+.mode button[aria-checked="true"] { background: var(--accent); }
+.mode button[aria-checked="true"] i { transform: translateX(22px); }
+.backnote { margin: 12px 0 0; padding: 10px 12px; border-left: 4px solid var(--biceps); background: var(--surface-2); border-radius: 8px; font-size: 14.5px; }
 .sets { margin-top: 12px; }
 .set { display: grid; grid-template-columns: 28px 1fr 1fr 48px; gap: 8px; align-items: center; margin-bottom: 8px; }
 .set-n { color: var(--muted); font-size: 13px; text-align: center; font-variant-numeric: tabular-nums; }
@@ -132,7 +141,7 @@ nav button[aria-current="true"] { color: var(--accent); border-top-color: var(--
 <script>
 const REST_SECONDS = 75;
 const GROUPS = { back: 'Спина', biceps: 'Біцепс', triceps: 'Трицепс' };
-const PLAN = [
+const ALL = [
   { id: 'lat-pulldown', en: 'Lat pulldown', name: 'Тяга верхнього блока до грудей', group: 'back', sets: 3, reps: '10–12', equip: 'Блочний тренажер, широка рукоять',
     start: 'Спробуй 20–30 кг і підкоригуй.',
     steps: ['Сядь і зафіксуй стегна під валиками. Візьмися за рукоять трохи ширше плечей, долонями від себе.',
@@ -187,7 +196,40 @@ const PLAN = [
             'Випрями руки, піднімаючи гантель назад угору.'],
     cues: ['Лікті дивляться вперед, а не в сторони.', 'Ребра опущені — не прогинай поперек.'],
     mistake: 'Брати завелику вагу. Вправа розтягує ліктьовий суглоб, тож починай легко й під контролем.' },
+  { id: 'machine-row', en: 'Chest supported machine row', name: 'Тяга в тренажері з упором грудьми', group: 'back', sets: 3, reps: '10–12', equip: 'Тренажер для тяги з подушкою під груди',
+    start: 'Спробуй 15–25 кг і підкоригуй.',
+    steps: ['Налаштуй сидіння так, щоб подушка впиралась у груди, а рукояті були на рівні низу грудей.',
+            'Притиснися грудьми до подушки й візьмися за рукояті прямими руками.',
+            'Тягни рукояті до себе, зводячи лопатки. Груди не відриваються від подушки.',
+            'Повільно випрями руки.'],
+    cues: ['Корпус тримає подушка — поперек не працює.', 'Немає такого тренажера? Зроби замість нього ще 2 підходи наступної вправи.'],
+    mistake: 'Відриватися грудьми від подушки й відхилятися назад, щоб дотягнути вагу.' },
+  { id: 'incline-row', en: 'Chest supported incline dumbbell row', name: 'Тяга гантелей лежачи грудьми на похилій лаві', group: 'back', sets: 3, reps: '10–12', equip: 'Дві гантелі, лава під кутом 30–45°',
+    start: 'Спробуй 6–10 кг на кожну руку.',
+    steps: ['Постав спинку лави під кутом 30–45°. Ляж на неї грудьми, ступні впираються в підлогу.',
+            'Гантелі в опущених руках, долоні дивляться одна на одну.',
+            'Тягни гантелі до нижніх ребер, зводячи лопатки.',
+            'Повільно опусти до прямих рук.'],
+    cues: ['Груди й живіт весь час лежать на лаві.', 'Шия на одній лінії зі спиною — дивись у підлогу.'],
+    mistake: 'Піднімати груди з лави й прогинатися в попереку.' },
+  { id: 'lying-extension', en: 'Lying dumbbell triceps extension', name: 'Розгинання рук з гантелями лежачи', group: 'triceps', sets: 2, reps: '12', equip: 'Дві гантелі, горизонтальна лава',
+    start: 'Спробуй 3–5 кг на кожну руку.',
+    steps: ['Ляж на лаву, зігни коліна й постав ступні на лаву — так поперек притиснутий.',
+            'Підніми гантелі над грудьми, долоні дивляться одна на одну.',
+            'Не рухаючи плечима, зігни лікті й опусти гантелі обабіч голови.',
+            'Випрями руки.'],
+    cues: ['Плечова частина рук нерухома й вертикальна.', 'Поперек притиснутий до лави.'],
+    mistake: 'Розводити лікті в сторони або брати завелику вагу. Гантелі над обличчям — контроль понад усе.' },
 ];
+const NORMAL_IDS = ['lat-pulldown', 'seated-row', 'db-row', 'db-curl', 'pushdown', 'hammer-curl', 'oh-extension'];
+const BACK_IDS = ['lat-pulldown', 'machine-row', 'incline-row', 'db-curl', 'pushdown', 'hammer-curl', 'lying-extension'];
+// Extra instructions shown in the lower-back-friendly mode
+const BACK_NOTES = {
+  'lat-pulldown': 'Сиди рівно, не відхиляйся назад і не прогинайся. Візьми вагу трохи меншу.',
+  'db-curl': 'Виконуй сидячи на лаві з вертикальною спинкою, спина притиснута до неї.',
+  'hammer-curl': 'Виконуй сидячи на лаві з вертикальною спинкою, спина притиснута до неї.',
+  'pushdown': 'Стій рівно, одна нога трохи попереду, живіт напружений. Не нахиляйся й не дотискай вагу корпусом. Якщо поперек відгукується — пропусти вправу.',
+};
 
 // ---------- state ----------
 const KEY = 'gymlog.v1';
@@ -208,15 +250,17 @@ function lastSets(exId) {
   }
   return null;
 }
+const isBack = () => state.mode !== 'normal';
+const plan = () => (isBack() ? BACK_IDS : NORMAL_IDS).map(id => ALL.find(x => x.id === id));
 function ensureCurrent() {
-  if (state.current) return state.current;
-  const entries = {};
-  for (const ex of PLAN) {
+  if (!state.current) state.current = { startedAt: null, entries: {} };
+  const entries = state.current.entries;
+  for (const ex of plan()) {
+    if (entries[ex.id]) continue;
     const prev = lastSets(ex.id);
     entries[ex.id] = Array.from({ length: ex.sets }, (_, i) => ({
       kg: prev ? (prev.sets[Math.min(i, prev.sets.length - 1)].kg ?? '') : '', reps: '', done: false }));
   }
-  state.current = { startedAt: null, entries };
   return state.current;
 }
 const fmtKg = v => (v === '' || v == null) ? '–' : String(v);
@@ -239,12 +283,12 @@ function render() {
 }
 
 function workoutView() {
-  const cur = ensureCurrent();
+  const cur = ensureCurrent(), P = plan(), back = isBack();
   let total = 0, done = 0;
-  for (const ex of PLAN) for (const s of cur.entries[ex.id]) { total++; if (s.done) done++; }
-  if (openId === null) openId = (PLAN.find(ex => cur.entries[ex.id].some(s => !s.done)) || PLAN[0]).id;
+  for (const ex of P) for (const s of cur.entries[ex.id]) { total++; if (s.done) done++; }
+  if (openId === null) openId = (P.find(ex => cur.entries[ex.id].some(s => !s.done)) || P[0]).id;
 
-  const cards = PLAN.map((ex, i) => {
+  const cards = P.map((ex, i) => {
     const sets = cur.entries[ex.id];
     const allDone = sets.length > 0 && sets.every(s => s.done);
     const open = openId === ex.id;
@@ -258,6 +302,7 @@ function workoutView() {
         <span class="target">${ex.sets} × ${parseInt(ex.reps) === +ex.reps ? ex.reps : esc(ex.reps.split(' ')[0])}</span>
       </button>
       ${open ? `<div class="card-body">
+        ${back && BACK_NOTES[ex.id] ? `<p class="backnote"><b>Для попереку:</b> ${esc(BACK_NOTES[ex.id])}</p>` : ''}
         <details ${prev ? '' : 'open'}><summary>Як виконувати</summary><div class="how">
           <ol>${ex.steps.map(s => `<li>${esc(s)}</li>`).join('')}</ol>
           <h4>На що звернути увагу</h4><ul>${ex.cues.map(s => `<li>${esc(s)}</li>`).join('')}</ul>
@@ -280,7 +325,12 @@ function workoutView() {
     </section>`;
   }).join('');
 
-  return `<div class="progress"><i style="width:${total ? done / total * 100 : 0}%"></i></div>
+  const mode = `<div class="mode ${back ? 'on' : ''}">
+      <div><b>${back ? 'Щадний режим: болить поперек' : 'Звичайне тренування'}</b>
+        <span>${back ? 'Усі вправи з опорою для корпуса. Різкий біль, біль у нозі чи оніміння — зупинись і звернися до лікаря.' : 'Болить поперек? Увімкни щадний режим.'}</span></div>
+      <button data-act="mode" role="switch" aria-checked="${back}" aria-label="Щадний режим для попереку"><i></i></button>
+    </div>`;
+  return `${mode}<div class="progress"><i style="width:${total ? done / total * 100 : 0}%"></i></div>
     <div class="progress-label"><span>Виконано підходів: ${done} з ${total}</span><span>Відпочинок ${REST_SECONDS} с</span></div>
     ${cards}
     <button class="btn" data-act="finish">Завершити тренування</button>
@@ -288,7 +338,17 @@ function workoutView() {
 }
 
 function guideView() {
-  return `<h2>Перед початком</h2>
+  const back = !isBack() ? '' : `<h2>Якщо болить поперек</h2>
+  <div class="prose">
+    <ul><li>Розминка: ходьба або велотренажер 5 хвилин. Веслування сьогодні пропусти.</li>
+      <li>Жодних нахилів із вагою й тяг без опори: груди або спина завжди на подушці чи лаві.</li>
+      <li>Бери вагу на крок меншу, ніж зазвичай, і рухайся повільно.</li>
+      <li>Гантелі піднімай з лави чи стійки, а не з підлоги; якщо з підлоги — присідай, а не нахиляйся.</li>
+      <li>Не розтягуй поперек через біль. Після тренування — спокійна ходьба 5 хвилин.</li></ul>
+    <h3>Не тренуйся й звернися до лікаря, якщо</h3>
+    <p>Біль різкий, віддає в сідницю чи ногу, є оніміння або слабкість у нозі, або біль з’явився після падіння чи травми.</p>
+  </div>`;
+  return `${back}<h2>Перед початком</h2>
   <div class="prose">
     <h3>Розминка — 5–8 хвилин</h3>
     <ul><li>5 хвилин легкого веслування на тренажері або швидкої ходьби під нахилом.</li>
@@ -323,7 +383,7 @@ function historyView() {
   if (!state.history.length) return `<div class="empty">Тренувань ще немає.<br>Заверши перше — і воно з’явиться тут.</div>`;
   return '<h2>Минулі тренування</h2>' + state.history.map((s, i) => {
     let n = 0, vol = 0;
-    const rows = PLAN.map(ex => {
+    const rows = ALL.map(ex => {
       const done = (s.entries[ex.id] || []).filter(x => x.done);
       if (!done.length) return '';
       for (const d of done) { n++; vol += (parseFloat(d.kg) || 0) * (parseInt(d.reps) || 0); }
@@ -374,20 +434,21 @@ document.addEventListener('click', e => {
   const b = e.target.closest('[data-act]');
   if (!b) return;
   const act = b.dataset.act, cur = ensureCurrent(), sets = b.dataset.ex && cur.entries[b.dataset.ex];
-  if (act === 'toggle') openId = openId === b.dataset.ex ? '' : b.dataset.ex;
+  if (act === 'mode') { state.mode = isBack() ? 'normal' : 'back'; openId = null; }
+  else if (act === 'toggle') openId = openId === b.dataset.ex ? '' : b.dataset.ex;
   else if (act === 'check') {
     const s = sets[+b.dataset.set];
     s.done = !s.done;
     if (s.done) {
       if (!cur.startedAt) cur.startedAt = Date.now();
-      const ex = PLAN.find(x => x.id === b.dataset.ex);
+      const ex = ALL.find(x => x.id === b.dataset.ex);
       if (s.reps === '') s.reps = String(parseInt(ex.reps));
       const next = sets[+b.dataset.set + 1];
       if (next && next.kg === '') next.kg = s.kg;
-      const allSetsDone = PLAN.every(x => cur.entries[x.id].every(y => y.done));
+      const allSetsDone = plan().every(x => cur.entries[x.id].every(y => y.done));
       if (!allSetsDone) startTimer(REST_SECONDS);
       if (sets.every(x => x.done)) {
-        const nextEx = PLAN.find(x => cur.entries[x.id].some(y => !y.done));
+        const nextEx = plan().find(x => cur.entries[x.id].some(y => !y.done));
         openId = nextEx ? nextEx.id : '';
       }
     }
@@ -395,7 +456,7 @@ document.addEventListener('click', e => {
   else if (act === 'add-set') sets.push({ kg: sets.length ? sets[sets.length - 1].kg : '', reps: '', done: false });
   else if (act === 'del-set') sets.pop();
   else if (act === 'finish') {
-    const any = PLAN.some(x => cur.entries[x.id].some(y => y.done));
+    const any = Object.values(cur.entries).some(e => e.some(y => y.done));
     if (!any) { alert('Спершу відміть хоча б один підхід.'); return; }
     if (!confirm('Завершити й зберегти це тренування?')) return;
     state.history.unshift({ date: new Date().toISOString(),
